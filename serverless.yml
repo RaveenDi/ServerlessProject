@@ -5,7 +5,7 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: python3.9
-  profile: serverless
+#  profile: serverless
   iamRoleStatements:
     - Effect: Allow
       Action:
