@@ -37,3 +37,4 @@ node_modules
 .tmp
 
 frontend/build
+/frontend/build/
