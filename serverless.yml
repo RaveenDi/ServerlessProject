@@ -1,0 +1,148 @@
+service: serverlessProject
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.9
+  profile: serverless
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: '*'
+  apiGateway:
+    apiKeys:
+      - api-key
+    usagePlan:
+      quota:
+        limit: 1000
+        period: MONTH
+      throttle:
+        burstLimit: 10
+        rateLimit: 10
+
+
+package:
+  exclude:
+    - "**/node_modules/**"
+
+custom:
+   userTableName: user-details
+   frontendBucketName: serverless-frontend-1702743453
+   s3Sync:
+     - bucketName: ${self:custom.frontendBucketName}
+       localDir: frontend/build/
+
+
+plugins:
+  - serverless-s3-sync
+
+functions:
+  userService:
+    handler: backend.user.user.handler
+    events:
+      - http:
+          path: user/
+          method: POST
+          cors: true
+          private: true
+      - http:
+          path: user/{ID}
+          method: GET
+          cors: true
+          private: true
+      - http:
+          path: user/{ID}
+          method: PUT
+          cors: true
+      - http:
+          path: user/{ID}
+          method: DELETE
+          cors: true
+  appointmentService:
+    handler: backend.appointment.appointment.handler
+    events:
+      - http:
+          path: appointment/
+          method: POST
+          cors: true
+      - http:
+          path: appointment/{ID}
+          method: GET
+          cors: true
+      - http:
+          path: appointment/{ID}
+          method: PUT
+          cors: true
+      - http:
+          path: appointment/{ID}
+          method: DELETE
+          cors: true
+
+resources:
+  Resources:
+    UserTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.userTableName}
+        AttributeDefinitions:
+          - AttributeName: ID
+            AttributeType: S
+        KeySchema:
+            - AttributeName: ID
+              KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    ReactAppBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.frontendBucketName}
+        AccessControl: Private
+        PublicAccessBlockConfiguration:
+            BlockPublicPolicy: false
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+    S3AccessPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: ReactAppBucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: '*'
+              Action:
+                - s3:GetObject
+              Resource: arn:aws:s3:::${self:custom.frontendBucketName}/*
+    CloudFront:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - DomainName: ${self:custom.frontendBucketName}.s3.amazonaws.com
+              Id: ReactApp
+              CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: https-only
+          Enabled: true
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            TargetOriginId: ReactApp
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true
