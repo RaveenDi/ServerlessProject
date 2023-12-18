@@ -1,0 +1,8 @@
+{
+  "Template": {
+    "TemplateName": "appointmentReminderTemplate",
+    "SubjectPart": "REMINDER ON DOCTOR APPOINTMENT",
+    "HtmlPart": "<html><head><style>.out-box {    background-color: #F0F0F0;    padding-top: 3px;    padding-left: 10px;    padding-bottom: 20px;}.box {text-align: center;background-color: #F0F0F0;}</style></head><body><div class='out-box'><h3>Hi {{name}},</h3><div class='box'><p>You have scheduled an appointment with <b>{{doctor_name}}</b> for the session <b>{{today_date}}@{{session_time}}</b>.</p><br>APPOINTMENT NUMBER : <b>{{appointment_number}}</b><br>ESTIMATED APPOINTMENT TIME : <b>{{appointment_time}}</b></div></div></body></html>",
+    "TextPart": "Hi {{name}},\r\nYou have scheduled an appointment with {{doctor_name}} for the session {{today_date}}@{{session_time}}.\r\nAPPOINTMENT NUMBER : {{appointment_number}}\r\nESTIMATED APPOINTMENT TIME : {{appointment_time}}"
+  }
+}

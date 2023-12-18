@@ -11,6 +11,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: '*'
+    - Effect: Allow
+      Action:
+        - ses:SendBulkTemplatedEmail
+      Resource: '*'
   apiGateway:
     apiKeys:
       - api-key
@@ -33,6 +37,8 @@ custom:
    s3Sync:
      - bucketName: ${self:custom.frontendBucketName}
        localDir: frontend/build/
+   emailSource: sample_email@domain.com  # set your email address
+   template: appointmentReminderTemplate
 
 
 plugins:
@@ -79,6 +85,20 @@ functions:
           path: appointment/{ID}
           method: DELETE
           cors: true
+  reminderService:
+    handler: backend.reminder.reminder.handler
+    environment:
+      email_source: ${self:custom.emailSource}
+      template: ${self:custom.template}
+    events:
+      - schedule:
+          method: scheduler
+          rate:
+            - cron(0 0 * * ? *)
+          timezone: Asia/Colombo
+          input:
+            triggerDate: <aws.scheduler.scheduled-time>
+
 
 resources:
   Resources:
@@ -146,3 +166,15 @@ resources:
             ViewerProtocolPolicy: redirect-to-https
           ViewerCertificate:
             CloudFrontDefaultCertificate: true
+    SESIdentity:
+      Type: AWS::SES::EmailIdentity
+      Properties:
+        EmailIdentity: ${self:custom.emailSource}
+    SESTemplate:
+      Type: AWS::SES::Template
+      Properties:
+        Template:
+          TemplateName: ${self:custom.template}
+          HtmlPart: "<html><head><style>.out-box {    background-color: #F0F0F0;    padding-top: 3px;    padding-left: 10px;    padding-bottom: 20px;}.box {text-align: center;background-color: #F0F0F0;}</style></head><body><div class='out-box'><h3>Hi {{name}},</h3><div class='box'><p>You have scheduled an appointment with <b>{{doctor_name}}</b> for the session <b>{{today_date}}@{{session_time}}</b>.</p><br>APPOINTMENT NUMBER : <b>{{appointment_number}}</b><br>ESTIMATED APPOINTMENT TIME : <b>{{appointment_time}}</b></div></div></body></html>"
+          SubjectPart: "REMINDER ON DOCTOR APPOINTMENT"
+          TextPart: "Hi {{name}},\r\nYou have scheduled an appointment with {{doctor_name}} for the session {{today_date}}@{{session_time}}.\r\nAPPOINTMENT NUMBER : {{appointment_number}}\r\nESTIMATED APPOINTMENT TIME : {{appointment_time}}"
