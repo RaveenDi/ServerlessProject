@@ -11,22 +11,18 @@ jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.10]
-        python-version: [3.6]
         
     steps:
     - name: Check out the repository to the runner
       uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: Use python ${{ matrix.python-version }}
+        node-version: '20.10'
+    - name: Use python
       uses: actions/python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.6'
         cache: 'pip'
     - name: Build frontend component
       working-directory: ./frontend
