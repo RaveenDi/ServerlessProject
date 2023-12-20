@@ -11,16 +11,20 @@ jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.10]
+        python-version: [3.6]
         
     steps:
     - name: Check out the repository to the runner
       uses: actions/checkout@v3
-    - name: Use Node.js
+    - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
-        node-version: '20.10'
-    - name: Use python
-      uses: actions/python@v4
+        node-version: ${{ matrix.node-version }}
+    - name: Use python ${{ matrix.python-version }}
+      uses: actions/python@v3
       with:
         python-version: '3.6'
         cache: 'pip'
