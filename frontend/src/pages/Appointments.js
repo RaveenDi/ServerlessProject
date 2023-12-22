@@ -28,26 +28,22 @@ function Appointments() {
                     message: "Succcess",
                     data: [
                         {
-                            _id: "1",
-                            name: "Kashyapa Niyarepola",
-                            appointmentDateTime: "2023-01-01T10:00:00.000Z",
-                            status: "Confirmed",
-                            doctorInfo: {
-                                _id: "00001",
-                                name: "Thisun Dayarathne",
-                                phoneNumber: "1234567890",
-                            }
+                            doctorId: "00001",
+                            appointmentDateTime: "2023-01-01T10:00:00",
+                            date: "2023-01-01",
+                            name: "Thisun Dayarathne",
+                            speciality: 'Dental',
+                            number: 2,
+                            estimatedTime: '2023-01-01T10:20:00'
                         },
                         {
-                            _id: "2",
-                            name: "Kashyapa Niyarepola",
-                            appointmentDateTime: "2023-01-07T14:50:00.000Z",
-                            status: "Pending",
-                            doctorInfo: {
-                                _id: "00002",
-                                name: "Savindu Ekanayake",
-                                phoneNumber: "9876543210",
-                            }
+                            doctorId: "00001",
+                            appointmentDateTime: "2023-01-02T10:00:00",
+                            date: "2023-01-02",
+                            name: "Thisun Dayarathne",
+                            speciality: 'Dental',
+                            number: 7,
+                            estimatedTime: '2023-01-02T11:10:00'
                         }
                     ]
                 }
@@ -61,7 +57,7 @@ function Appointments() {
         }
     };
 
-    const handleDeleteAppointment = (appointmentId) => {
+    const handleDeleteAppointment = (record) => {
         confirm({
             title: 'Do you want to delete this appointment?',
             async onOk() {
@@ -92,30 +88,30 @@ function Appointments() {
 
     const columns = [
         {
-            title: "Id",
-            dataIndex: "_id",
+            title: "DoctorId",
+            dataIndex: "doctorId",
         },
         {
             title: "Doctor",
             dataIndex: "name",
             render: (text, record) => (
                 <span>
-                    {record.doctorInfo.name}
+                    {record.name}
                 </span>
             ),
         },
         {
-            title: "Phone",
-            dataIndex: "phoneNumber",
+            title: "Speciality",
+            dataIndex: "speciality",
             render: (text, record) => (
                 <span>
-                    {record.doctorInfo.phoneNumber}
+                    {record.speciality}
                 </span>
             ),
         },
         {
             title: "Date & Time",
-            dataIndex: "createdAt",
+            dataIndex: "date",
             render: (text, record) => (
                 <span>
                     {moment(record.appointmentDateTime).format("DD-MM-YYYY")} {moment(record.appointmentDateTime).format("HH:mm")}
@@ -123,20 +119,34 @@ function Appointments() {
             ),
         },
         {
-            title: "Status",
-            dataIndex: "status",
+            title: "Number",
+            dataIndex: "number",
+            render: (text, record) => (
+                <span>
+                    {record.number}
+                </span>
+            ),
+        },
+        {
+            title: "Estimted Time",
+            dataIndex: "estimatedTime",
+            render: (text, record) => (
+                <span>
+                    {moment(record.estimatedTime).format("DD-MM-YYYY")} {moment(record.estimatedTime).format("HH:mm")}
+                </span>
+            ),
         },
         {
             title: "Actions",
             render: (text, record) => (
                 <span>
-                    <Button type="link" onClick={() => {
+                    {/* <Button type="link" onClick={() => {
                         setSelectedAppointment(record);
                         setVisible(true);
                     }}>
                         Update
-                    </Button>
-                    <Button type="link" onClick={() => handleDeleteAppointment(record._id)}>
+                    </Button> */}
+                    <Button type="link" onClick={() => handleDeleteAppointment(record)}>
                         Delete
                     </Button>
                 </span>

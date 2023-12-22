@@ -29,6 +29,7 @@ package:
 
 custom:
    userTableName: user-details
+   appointmentTableName: appointment-details
    frontendBucketName: serverless-frontend-1702743453
    s3Sync:
      - bucketName: ${self:custom.frontendBucketName}
@@ -92,6 +93,34 @@ resources:
         KeySchema:
             - AttributeName: ID
               KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    AppointmentTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.appointmentTableName}
+        AttributeDefinitions:
+          - AttributeName: doctorId
+            AttributeType: S
+          - AttributeName: sessionDateTime
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+          - AttributeName: patientId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: doctorId
+            KeyType: HASH
+          - AttributeName: sessionDateTime
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: DateIndex
+            KeySchema:
+              - AttributeName: date
+                KeyType: HASH
+              - AttributeName: doctorId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
     ReactAppBucket:
       Type: AWS::S3::Bucket

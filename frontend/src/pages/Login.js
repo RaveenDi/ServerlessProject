@@ -4,6 +4,7 @@ import { hideLoading, showLoading } from "../redux/alertsSlice";
 import { Button, Form, Input } from "antd";
 import React from "react";
 import toast from "react-hot-toast";
+import { setUser } from "../redux/userSlice";
 
 function Login() {
   const dispatch = useDispatch();
@@ -16,13 +17,16 @@ function Login() {
         data: {
           success: true,
           message: "Login Successful",
-          data: `${values.email}`
+          data: {
+            email: `${values.email}`,
+            name: 'Danya'
+          }
         }
       }
       dispatch(hideLoading());
       if (response.data.success) {
         toast.success(response.data.message);
-        localStorage.setItem("token", response.data.data);
+        localStorage.setItem("token", response.data.data.email);
         navigate("/");
       } else {
         toast.error(response.data.message);
