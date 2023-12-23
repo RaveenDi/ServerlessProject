@@ -22,6 +22,17 @@ function Appointments() {
         try {
             dispatch(showLoading());
             // make the get appointments API call
+            // const response = await axios.get(
+            //     "/appointment",
+            //     {
+            //       userId: user.userId,
+            //     },
+            //     {
+            //       headers: {
+            //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+            //       },
+            //     }
+            //   );
             const response = {
                 data: {
                     success: true,
@@ -63,7 +74,20 @@ function Appointments() {
             async onOk() {
                 try {
                     dispatch(showLoading());
-                    // make the delete apoointment API call
+                    // make the get appointments API call
+                    // const response = await axios.delete(
+                    //     "/appointment",
+                    //     {
+                    //       doctorId: record.doctorId,
+                    //       sessionDateTime: record.sessionDateTime
+                    //       userId: user.userId,
+                    //     },
+                    //     {
+                    //       headers: {
+                    //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    //       },
+                    //     }
+                    //   );
                     const response = {
                         data: {
                             success: true,

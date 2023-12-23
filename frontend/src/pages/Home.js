@@ -13,6 +13,14 @@ function Home() {
     try {
       dispatch(showLoading())
       // make the get doctor details API call
+            // const response = await axios.get(
+            //     "/doctor",
+            //     {
+            //       headers: {
+            //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+            //       },
+            //     }
+            //   );
       const response = {
         data:{
           success: true,

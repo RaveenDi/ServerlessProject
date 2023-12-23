@@ -21,7 +21,7 @@ function CreateAppointments() {
             dispatch(showLoading());
             // make the doctor data API call
             // const response = await axios.post(
-            //     "/api/doctor/get-doctor-info-by-id",
+            //     "/appointment/sessions",
             //     {
             //       doctorId: params.doctorId,
             //     },
@@ -84,7 +84,7 @@ function CreateAppointments() {
             // make the create appointment API call
 
             // const response = await axios.post(
-            //     "/api/create-appointment",
+            //     "/appointment",
             //     {
             //         doctorId: session._id,
             //         sessionDateTime: session.sessionDateTime,

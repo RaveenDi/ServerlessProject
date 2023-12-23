@@ -5,7 +5,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: python3.9
-#  profile: serverless
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -22,19 +21,18 @@ provider:
         burstLimit: 10
         rateLimit: 10
 
-
 package:
   exclude:
     - "**/node_modules/**"
 
 custom:
-   userTableName: user-details
-   appointmentTableName: appointment-details
-   frontendBucketName: serverless-frontend-1702743453
-   s3Sync:
-     - bucketName: ${self:custom.frontendBucketName}
-       localDir: frontend/build/
-
+  userTableName: user-details
+  doctorTableName: doctor-details
+  appointmentTableName: appointment-details
+  frontendBucketName: serverless-frontend-1703246000853
+  s3Sync:
+    - bucketName: ${self:custom.frontendBucketName}
+      localDir: frontend/build/
 
 plugins:
   - serverless-s3-sync
@@ -94,6 +92,21 @@ resources:
             - AttributeName: ID
               KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+    DoctorTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.doctorTableName}
+        AttributeDefinitions:
+          - AttributeName: ID
+            AttributeType: S
+          - AttributeName: name
+            AttributeType: S
+          - AttributeName: speciality
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ID
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
     AppointmentTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -105,8 +118,8 @@ resources:
             AttributeType: S
           - AttributeName: date
             AttributeType: S
-          - AttributeName: patientId
-            AttributeType: S
+          - AttributeName: patientIds
+            AttributeType: L
         KeySchema:
           - AttributeName: doctorId
             KeyType: HASH
