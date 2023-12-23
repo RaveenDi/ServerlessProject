@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - gitworkflow/kosha
   workflow_dispatch:
 
 jobs:
@@ -34,5 +33,5 @@ jobs:
       with:
         args: deploy
       env:
-         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_KOSHA }}
-         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_KOSHA }}
+         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
