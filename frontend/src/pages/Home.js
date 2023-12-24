@@ -5,45 +5,26 @@ import { showLoading, hideLoading } from "../redux/alertsSlice";
 import Layout from "../components/Layout";
 import Doctor from "../components/Doctor";
 import Header from "../components/Header";
+import axios from "axios";
 
 function Home() {
+  const api_gateway_key = ''
   const [doctors, setDoctors] = useState([]);
   const dispatch = useDispatch();
   const getData = async () => {
     try {
       dispatch(showLoading())
       // make the get doctor details API call
-            // const response = await axios.get(
-            //     "/doctor",
-            //     {
-            //       headers: {
-            //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-            //       },
-            //     }
-            //   );
-      const response = {
-        data:{
-          success: true,
-          data: [
-            {
-              _id: '000001',
-              name: 'Thisun Dayarathna',
-              speciality: 'Dental'
-            },
-            {
-              _id: '000002',
-              name: 'Savindu Ekanayake',
-              speciality: 'Cardiology'
-            },
-            {
-              _id: '000003',
-              name: 'Yasiru Rathnayake',
-              speciality: 'Dermatology'
-            }
-          ]
+      const response = await axios.get(
+        `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/doctor`,
+        {
+          headers: {
+            'x-api-key': `${api_gateway_key}`,
+          },
         }
-      }
+      );
       dispatch(hideLoading())
+      console.log(response);
       if (response.data.success) {
         setDoctors(response.data.data);
       }

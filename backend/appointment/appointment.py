@@ -1,30 +1,27 @@
 import json
 import boto3
 from botocore.exceptions import ClientError
+from datetime import datetime, timedelta
 
 dynamo_db = boto3.resource('dynamodb', region_name='us-east-1')
 appointment_table = dynamo_db.Table('appointment-details')
 doctor_table = dynamo_db.Table('doctor-details')
-
 
 def handler(event, context):
     http_method = event['httpMethod']
     path = event['path']
 
     if http_method == 'GET' and path.startswith('/appointment/'):
-        return get_appointment_handler(event['body'])
+        user_id = path.split('/')[2]
+        return get_appointment_handler(user_id)
 
     elif http_method == 'POST' and path == '/appointment':
         return create_appointment_handler(event['body'])
 
-    elif http_method == 'DELETE' and path.startswith('/appointment/'):
+    elif http_method == 'DELETE' and path.startswith('/appointment'):
         return delete_appointment_handler(event['body'])
 
-    # elif http_method == 'PUT' and path.startswith('/appointment/'):
-    #     appointment_id = path.split('/')[2]
-    #     return update_appointment_handler(appointment_id, event['body'])
-
-    elif http_method == 'GET' and path == '/appointment/sessions':
+    elif http_method == 'POST' and path == '/appointment/sessions':
         return get_doctor_session_handler(event['body'])
 
     else:
@@ -38,12 +35,8 @@ def handler(event, context):
         }
 
 
-def get_appointment_handler(request_body):
+def get_appointment_handler(user_id):
     try:
-        appointment_data = json.loads(request_body)
-
-        user_id = appointment_data.get('user_id')
-
         response = appointment_table.scan(
             FilterExpression='contains(patientIds, :userId)',
             ExpressionAttributeValues={':userId': user_id}
@@ -74,7 +67,7 @@ def get_appointment_handler(request_body):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'appointments': appointments}),
+            'body': json.dumps({'success': 'true', 'message': 'successfully fetched the appointment details', 'data': appointments}),
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
@@ -86,12 +79,12 @@ def get_appointment_handler(request_body):
 
         return {
             'statusCode': 500,
-            'body': json.dumps(f'DynamoDB error: {error_code} - {error_message}')
+            'body': json.dumps({ 'success':'false', 'message':f'DynamoDB error: {error_code} - {error_message}'})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps(f'Error: {str(e)}')
+            'body': json.dumps({ 'success':'false', 'message': f'Error: {str(e)}'})
         }
 
 
@@ -261,16 +254,26 @@ def get_doctor_session_handler(request_body):
         user_id = request_data.get('userId')
 
         response = appointment_table.query(
-            IndexName='DateIndex',  # Assuming we have a GSI named 'DateIndex'
+            IndexName='DoctorIndex',  # Assuming we have a GSI named 'DateIndex'
             KeyConditionExpression='doctorId = :doctor_id',
             ExpressionAttributeValues={':doctor_id': doctor_id}
         )
 
+        doctor_response = doctor_table.get_item(
+                Key={'ID': doctor_id}
+            )
+
+        doctor_item = doctor_response.get('Item', {}) 
+
         sessions = response.get('Items', [])
 
         for session in sessions:
-            count_up_to_user_id = session.get('patientIds', []).index(user_id) + 1
+            patient_ids = session.get('patientIds', [])
+            already_booked = user_id in patient_ids
+
+            count_up_to_user_id = patient_ids.index(user_id) + 1 if user_id in patient_ids else len(patient_ids)
             session['count'] = count_up_to_user_id
+            session['alreadyBooked'] = already_booked
             del session['patientIds']
 
             # Calculate estimatedTime based on count (assuming 10-minute intervals)
@@ -281,7 +284,7 @@ def get_doctor_session_handler(request_body):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'sessions': sessions}),
+            'body': json.dumps({'success': 'true', 'data': {'sessions': sessions, 'doctor': doctor_item}}),
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
@@ -293,10 +296,10 @@ def get_doctor_session_handler(request_body):
 
         return {
             'statusCode': 500,
-            'body': json.dumps(f'DynamoDB error: {error_code} - {error_message}')
+            'body': json.dumps({'success': 'false', 'message': f'DynamoDB error: {error_code} - {error_message}'})
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps(f'Error: {str(e)}')
+            'body': json.dumps({'success': 'false', 'message': f'Error: {str(e)}'})
         }

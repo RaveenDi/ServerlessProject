@@ -10,7 +10,7 @@ def handler(event, context):
     http_method = event['httpMethod']
     path = event['path']
 
-    if http_method == 'GET' and path.startswith('/doctor/'):
+    if http_method == 'GET' and path == '/doctor':
         return get_doctor_handler()
 
     else:
@@ -32,7 +32,7 @@ def get_doctor_handler():
 
         return {
             'statusCode': 200,
-            'body': json.dumps({'success': 'true', 'doctors': doctors}),
+            'body': json.dumps({'success': 'true', 'message': 'successfully fetched doctor details', 'data': doctors}),
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
@@ -49,5 +49,5 @@ def get_doctor_handler():
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps({ 'success': 'false', 'message': f'Error: {str(e)}'})
+            'body': json.dumps({'success': 'false', 'message': f'Error: {str(e)}'})
         }

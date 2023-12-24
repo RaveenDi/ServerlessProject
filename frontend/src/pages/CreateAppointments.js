@@ -15,59 +15,25 @@ function CreateAppointments() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const params = useParams();
+    const api_gateway_key = ''
 
     const getDoctorSessions = async () => {
         try {
             dispatch(showLoading());
             // make the doctor data API call
-            // const response = await axios.post(
-            //     "/appointment/sessions",
-            //     {
-            //       doctorId: params.doctorId,
-            //     },
-            //     {
-            //       headers: {
-            //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-            //       },
-            //     }
-            //   );
-
-            const response = {
-                data: {
-                    success: true,
-                    data: {
-                        sessions:
-                            [{
-                                _id: '000001',
-                                sessionDateTime: '2023-12-20T17:00:00',
-                                date: '2023-12-20',
-                                count: 2,
-                                estimatedTime: '2023-12-20T17:20:00'
-                            },
-                            {
-                                _id: '000001',
-                                sessionDateTime: '2023-12-21T17:00:00',
-                                date: '2023-12-21',
-                                count: 0,
-                                estimatedTime: '2023-12-21T17:00:00'
-                            },
-                            {
-                                _id: '000001',
-                                sessionDateTime: '2023-12-22T17:00:00',
-                                date: '2023-12-22',
-                                count: 7,
-                                estimatedTime: '2023-12-22T18:10:00'
-                            }
-                            ],
-                        doctor: {
-                            _id: '000001',
-                            name: 'Thisun Dayarathna',
-                            speciality: 'Dental'
-                        }
-                    }
+            const response = await axios.post(
+                `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment/sessions`,
+                {
+                  doctorId: params.doctorId,
+                //   userId: user._id
+                  userId: '300'
+                },
+                {
+                    headers: {
+                        'x-api-key': `${api_gateway_key}`,
+                      },
                 }
-            };
-
+              );
             dispatch(hideLoading());
             if (response.data.success) {
                 setDoctor(response.data.data.doctor);
@@ -81,33 +47,29 @@ function CreateAppointments() {
     const createAppointment = async (session) => {
         try {
             dispatch(showLoading());
+            console.log(session)
             // make the create appointment API call
-
-            // const response = await axios.post(
-            //     "/appointment",
-            //     {
-            //         doctorId: session._id,
-            //         sessionDateTime: session.sessionDateTime,
-            //         date: session.date,
-            //         userId: user._id, // Assuming you have a function to get the current user ID
-            //     },
-            //     {
-            //         headers: {
-            //             Authorization: `Bearer ${localStorage.getItem("token")}`,
-            //         },
-            //     }
-            // );
-
-            const response = {
-                data: {
-                    success: true,
-                    message: "Success"
+            const response = await axios.post(
+                "https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment",
+                {
+                    doctorId: session.doctorId,
+                    sessionDateTime: session.sessionDateTime,
+                    date: session.date,
+                    userId: '300', // Assuming you have a function to get the current user ID
+                },
+                {
+                    headers: {
+                        'x-api-key': `${api_gateway_key}`,
+                      },
                 }
-            }
+            );
 
             dispatch(hideLoading());
             if (response.data.success) {
                 toast.success(response.data.message);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         } catch (error) {
             toast.error("Error booking appointment");
@@ -134,16 +96,17 @@ function CreateAppointments() {
                                 grid={{ gutter: 16, column: 1 }}
                                 dataSource={sessions}
                                 renderItem={(session) => (
-                                    <List.Item key={session._id}>
+                                    <List.Item key={session.sessionDateTime}>
                                         <Card title={moment(session.sessionDateTime).format("DD-MM-YYYY HH:mm")}>
                                             <p>Date: {session.date}</p>
-                                            <p>Available Slot Number: {session.count + 1}</p>
+                                            <p>Available Slot Number: {session.alreadyBooked? session.count : session.count + 1}</p>
                                             <p>Estimated Time: {moment(session.estimatedTime).format("DD-MM-YYYY HH:mm")}</p>
                                             <Button
                                                 className="primary-button mt-3 full-width-button"
                                                 onClick={() => createAppointment(session)}
+                                                disabled={session.alreadyBooked}
                                             >
-                                                Book Now
+                                                {session.alreadyBooked ? "Already Booked" : "Book Now"}
                                             </Button>
                                         </Card>
                                     </List.Item>

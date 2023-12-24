@@ -29,10 +29,12 @@ custom:
   userTableName: user-details
   doctorTableName: doctor-details
   appointmentTableName: appointment-details
-  frontendBucketName: serverless-frontend-1703246000853
+  frontendBucketName: serverless-frontend-170324600
   s3Sync:
     - bucketName: ${self:custom.frontendBucketName}
       localDir: frontend/build/
+  apiGatewayUrl: 
+  apiGatewayKey:
 
 plugins:
   - serverless-s3-sync
@@ -59,6 +61,13 @@ functions:
           path: user/{ID}
           method: DELETE
           cors: true
+  doctorService:
+    handler: backend.doctor.doctor.handler
+    events:
+      - http:
+          path: doctor
+          method: GET
+          cors: true
   appointmentService:
     handler: backend.appointment.appointment.handler
     events:
@@ -75,8 +84,12 @@ functions:
           method: PUT
           cors: true
       - http:
-          path: appointment/{ID}
+          path: appointment/
           method: DELETE
+          cors: true
+      - http:
+          path: appointment/sessions
+          method: POST
           cors: true
 
 resources:
@@ -99,10 +112,6 @@ resources:
         AttributeDefinitions:
           - AttributeName: ID
             AttributeType: S
-          - AttributeName: name
-            AttributeType: S
-          - AttributeName: speciality
-            AttributeType: S
         KeySchema:
           - AttributeName: ID
             KeyType: HASH
@@ -118,8 +127,6 @@ resources:
             AttributeType: S
           - AttributeName: date
             AttributeType: S
-          - AttributeName: patientIds
-            AttributeType: L
         KeySchema:
           - AttributeName: doctorId
             KeyType: HASH
@@ -132,6 +139,12 @@ resources:
                 KeyType: HASH
               - AttributeName: doctorId
                 KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: DoctorIndex
+            KeySchema:
+              - AttributeName: doctorId
+                KeyType: HASH
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST

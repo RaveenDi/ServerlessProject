@@ -8,6 +8,7 @@ import moment from "moment";
 import Header from "../components/Header";
 import Layout from "../components/Layout";
 import UpdateAppointmentModal from "./UpdateAppointmentModal";
+import axios from "axios";
 
 const { confirm } = Modal;
 
@@ -17,48 +18,20 @@ function Appointments() {
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const api_gateway_key = ''
 
     const getAppointmentsData = async () => {
         try {
             dispatch(showLoading());
             // make the get appointments API call
-            // const response = await axios.get(
-            //     "/appointment",
-            //     {
-            //       userId: user.userId,
-            //     },
-            //     {
-            //       headers: {
-            //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-            //       },
-            //     }
-            //   );
-            const response = {
-                data: {
-                    success: true,
-                    message: "Succcess",
-                    data: [
-                        {
-                            doctorId: "00001",
-                            appointmentDateTime: "2023-01-01T10:00:00",
-                            date: "2023-01-01",
-                            name: "Thisun Dayarathne",
-                            speciality: 'Dental',
-                            number: 2,
-                            estimatedTime: '2023-01-01T10:20:00'
-                        },
-                        {
-                            doctorId: "00001",
-                            appointmentDateTime: "2023-01-02T10:00:00",
-                            date: "2023-01-02",
-                            name: "Thisun Dayarathne",
-                            speciality: 'Dental',
-                            number: 7,
-                            estimatedTime: '2023-01-02T11:10:00'
-                        }
-                    ]
+            const response = await axios.get(
+                `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment/${300}`,
+                {
+                    headers: {
+                        'x-api-key': `${api_gateway_key}`,
+                    },
                 }
-            }
+            );
             dispatch(hideLoading());
             if (response.data.success) {
                 setAppointments(response.data.data);
@@ -74,30 +47,25 @@ function Appointments() {
             async onOk() {
                 try {
                     dispatch(showLoading());
+                    console.log("+++++", record)
                     // make the get appointments API call
-                    // const response = await axios.delete(
-                    //     "/appointment",
-                    //     {
-                    //       doctorId: record.doctorId,
-                    //       sessionDateTime: record.sessionDateTime
-                    //       userId: user.userId,
-                    //     },
-                    //     {
-                    //       headers: {
-                    //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    //       },
-                    //     }
-                    //   );
-                    const response = {
-                        data: {
-                            success: true,
-                            message: "succesful"
+                    const response = await axios.delete(
+                        `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment`,
+                        {
+                            headers: {
+                                'x-api-key': `${api_gateway_key}`,
+                            },
+                            data: {
+                                doctorId: record.doctorId,
+                                sessionDateTime: record.sessionDateTime,
+                                userId: '300',
+                            },
                         }
-                    }
+                    );
                     dispatch(hideLoading());
                     if (response.data.success) {
                         toast.success(response.data.message);
-                        navigate('/appointments');
+                        window.location.reload();
                     }
                 } catch (error) {
                     toast.error("Error deleting appointment");
@@ -138,16 +106,16 @@ function Appointments() {
             dataIndex: "date",
             render: (text, record) => (
                 <span>
-                    {moment(record.appointmentDateTime).format("DD-MM-YYYY")} {moment(record.appointmentDateTime).format("HH:mm")}
+                    {moment(record.sessionDateTimeDateTime).format("DD-MM-YYYY")} {moment(record.sessionDateTime).format("HH:mm")}
                 </span>
             ),
         },
         {
             title: "Number",
-            dataIndex: "number",
+            dataIndex: "count",
             render: (text, record) => (
                 <span>
-                    {record.number}
+                    {record.count}
                 </span>
             ),
         },
