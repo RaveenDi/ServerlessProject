@@ -59,6 +59,7 @@ def get_appointment_handler(user_id):
             appointment['count'] = count_up_to_user_id
             # Remove patientIds list from response
             del appointment['patientIds']
+            del appointment['capacity']
 
             time_interval_minutes = 10
             session_datetime = datetime.strptime(appointment['sessionDateTime'], '%Y-%m-%dT%H:%M:%S')
@@ -108,23 +109,28 @@ def create_appointment_handler(request_body):
         if 'Item' in existing_appointment:
             existing_item = existing_appointment['Item']
             existing_patient_ids = existing_item.get('patientIds', [])
+            capacity = existing_item.get('capacity')
+            if len(existing_patient_ids) < capacity:
+                existing_patient_ids.append(user_id)
 
-            existing_patient_ids.append(user_id)
+                appointment_table.update_item(
+                    Key={
+                        'doctorId': doctor_id,
+                        'sessionDateTime': session_datetime
+                    },
+                    UpdateExpression='SET patientIds = :patientIds',
+                    ExpressionAttributeValues={
+                        ':patientIds': existing_patient_ids
+                    }
+                )
 
-            appointment_table.update_item(
-                Key={
-                    'doctorId': doctor_id,
-                    'sessionDateTime': session_datetime
-                },
-                UpdateExpression='SET patientIds = :patientIds',
-                ExpressionAttributeValues={
-                    ':patientIds': existing_patient_ids
-                }
-            )
+                message = 'User added to existing appointment'
+            else:
+                message = 'No available slots'
 
             return {
                 'statusCode': 200,
-                'body': json.dumps({'success': 'true', 'message': 'User added to existing appointment'}),
+                'body': json.dumps({'success': 'true', 'message': message}),
                 'headers': {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
@@ -143,7 +149,7 @@ def create_appointment_handler(request_body):
             appointment_table.put_item(Item=item)
             return {
                 'statusCode': 201,
-                'body': json.dumps({'success': 'true','message': 'New appointment created'}),
+                'body': json.dumps({'success': 'true', 'message': 'New appointment created'}),
                 'headers': {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*'
@@ -269,18 +275,25 @@ def get_doctor_session_handler(request_body):
 
         for session in sessions:
             patient_ids = session.get('patientIds', [])
+            count = session.get('capacity')
             already_booked = user_id in patient_ids
+            all_booked = len(patient_ids) == count
+            patient_count = len(patient_ids)
 
-            count_up_to_user_id = patient_ids.index(user_id) + 1 if user_id in patient_ids else len(patient_ids)
-            session['count'] = count_up_to_user_id
+            session['allBooked'] = all_booked
             session['alreadyBooked'] = already_booked
+            session['count'] = patient_count
+            if already_booked: session['appointmentNumber'] = patient_ids.index(user_id) + 1
             del session['patientIds']
+            del session['capacity']
 
             # Calculate estimatedTime based on count (assuming 10-minute intervals)
-            time_interval_minutes = 10
-            session_datetime = datetime.strptime(session['sessionDateTime'], '%Y-%m-%dT%H:%M:%S')
-            estimated_time = session_datetime + timedelta(minutes=count_up_to_user_id * time_interval_minutes)
-            session['estimatedTime'] = estimated_time.strftime('%Y-%m-%dT%H:%M:%S')
+            if not all_booked:
+                session['count'] += 1
+                time_interval_minutes = 10
+                session_datetime = datetime.strptime(session['sessionDateTime'], '%Y-%m-%dT%H:%M:%S')
+                estimated_time = session_datetime + timedelta(minutes=patient_count * time_interval_minutes)
+                session['estimatedTime'] = estimated_time.strftime('%Y-%m-%dT%H:%M:%S')
 
         return {
             'statusCode': 200,

@@ -32,12 +32,12 @@ def handler(event, context):
 
         # Query appointments for today using GSI
         response = dynamodb.query(
-            TableName='appointments',
-            IndexName='Date-DoctorId-index',
+            TableName='appointment-details',
+            IndexName='DateIndex',
             KeyConditionExpression='#date = :today',
-            ProjectionExpression='DoctorId, AppointmentDateTime, PatientIDs',
+            ProjectionExpression='doctorId, sessionDateTime, patientIds',
             ExpressionAttributeNames={
-                '#date': 'Date'
+                '#date': 'date'
             },
             ExpressionAttributeValues={
                 ':today': {"S": today_date}
@@ -46,11 +46,11 @@ def handler(event, context):
 
         # Process each appointment
         for appointment in response.get('Items', []):
-            doctor_id = appointment['DoctorId']['S']
-            appointment_datetime = appointment['AppointmentDateTime']['S']
+            doctor_id = appointment['doctorId']['S']
+            appointment_datetime = appointment['sessionDateTime']['S']
             dt = datetime.strptime(appointment_datetime.split("T")[1], "%H:%M:%S")
             session_time = dt.strftime("%I:%M:%S %p")
-            patient_ids = appointment['PatientIDs']['L']
+            patient_ids = appointment['patientIds']['L']
 
             response = dynamodb.get_item(
                 TableName="doctor-details",
@@ -59,61 +59,62 @@ def handler(event, context):
                 }
             )
 
-            doctor_name = response['Item']['Name']['S']
+            doctor_name = response['Item']['name']['S']
 
             # Send emails to each user in the appointment
             bulk_email_requests = []
-            for appointment_number in range(len(patient_ids)):
-                patient_id = patient_ids[appointment_number]
-                display_appointment_number = str(appointment_number + 1).zfill(2)
-                appointment_time = (dt + timedelta(minutes=10 * appointment_number)).strftime("%I:%M:%S %p")
-                response = dynamodb.get_item(
-                    TableName="user-details",
-                    Key={
-                        'ID': patient_id
-                    }
+            if len(patient_ids) > 0:
+                for appointment_number in range(len(patient_ids)):
+                    patient_id = patient_ids[appointment_number]
+                    display_appointment_number = str(appointment_number + 1).zfill(2)
+                    appointment_time = (dt + timedelta(minutes=10 * appointment_number)).strftime("%I:%M:%S %p")
+                    response = dynamodb.get_item(
+                        TableName="user-details",
+                        Key={
+                            'ID': patient_id
+                        }
+                    )
+
+                    patient_data = response['Item']
+                    patient_name = patient_data['name']['S']
+                    patient_email = patient_data['email']['S']
+
+                    bulk_email_requests.append({
+                        'Destination': {
+                            'ToAddresses': [patient_email]
+                        },
+                        'ReplacementTemplateData': json.dumps({
+                            'name': patient_name,
+                            'today_date': today_date,
+                            'session_time': session_time,
+                            'doctor_name': doctor_name,
+                            'appointment_number': display_appointment_number,
+                            'appointment_time': appointment_time
+                        })
+                    })
+
+                    logging.info(
+                        f"REMINDER\nHi {patient_name},\nYou have scheduled an appointment for the session {today_date}"
+                        f"@{session_time} with {doctor_name}.\nAPPOINTMENT NUMBER : {display_appointment_number}\n"
+                        f"ESTIMATED APPOINTMENT TIME : {appointment_time}")
+
+                # Send bulk emails using Amazon SES
+                ses.send_bulk_templated_email(
+                    Source=email_source,  # SES verified sender email
+                    Template=template,  # SES template name
+                    Destinations=bulk_email_requests,
+                    DefaultTemplateData=json.dumps({
+                        'name': 'patient_name',
+                        'today_date': 'today_date',
+                        'session_time': 'session_time',
+                        'doctor_name': 'doctor_name',
+                        'appointment_number': 'appointment_number',
+                        'appointment_time': 'appointment_time'
+                    })
                 )
 
-                patient_data = response['Item']
-                patient_name = patient_data['Name']['S']
-                patient_email = patient_data['Email']['S']
-
-                bulk_email_requests.append({
-                    'Destination': {
-                        'ToAddresses': [patient_email]
-                    },
-                    'ReplacementTemplateData': json.dumps({
-                        'name': patient_name,
-                        'today_date': today_date,
-                        'session_time': session_time,
-                        'doctor_name': doctor_name,
-                        'appointment_number': display_appointment_number,
-                        'appointment_time': appointment_time
-                    })
-                })
-
-                logging.info(
-                    f"REMINDER\nHi {patient_name},\nYou have scheduled an appointment for the session {today_date}"
-                    f"@{session_time} with {doctor_name}.\nAPPOINTMENT NUMBER : {display_appointment_number}\n"
-                    f"ESTIMATED APPOINTMENT TIME : {appointment_time}")
-
-            # Send bulk emails using Amazon SES
-            ses.send_bulk_templated_email(
-                Source=email_source,  # SES verified sender email
-                Template=template,  # SES template name
-                Destinations=bulk_email_requests,
-                DefaultTemplateData=json.dumps({
-                    'name': 'patient_name',
-                    'today_date': 'today_date',
-                    'session_time': 'session_time',
-                    'doctor_name': 'doctor_name',
-                    'appointment_number': 'appointment_number',
-                    'appointment_time': 'appointment_time'
-                })
-            )
-
     except ClientError as e:
-        logging.error(f"Error querying appointments or sending SNS messages: {e}")
+        logging.error(f"Error querying appointments or sending SES messages: {e}")
         raise
 
 # for local execution only

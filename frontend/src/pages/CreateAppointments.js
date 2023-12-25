@@ -99,14 +99,24 @@ function CreateAppointments() {
                                     <List.Item key={session.sessionDateTime}>
                                         <Card title={moment(session.sessionDateTime).format("DD-MM-YYYY HH:mm")}>
                                             <p>Date: {session.date}</p>
-                                            <p>Available Slot Number: {session.alreadyBooked? session.count : session.count + 1}</p>
-                                            <p>Estimated Time: {moment(session.estimatedTime).format("DD-MM-YYYY HH:mm")}</p>
+                                            {session.allBooked ?
+                                                <p>Total patient count: {session.count}</p>
+                                                :
+                                                <>
+                                                    <p>Next available Slot Number: {session.count}</p>
+                                                    <p>Estimated Time: {moment(session.estimatedTime).format("DD-MM-YYYY HH:mm")}</p>
+                                                </>
+                                            }
+                                            {session.alreadyBooked ?
+                                                    <p>Your appointment number: {session.appointmentNumber}</p>
+                                                    : null
+                                            }
                                             <Button
                                                 className="primary-button mt-3 full-width-button"
                                                 onClick={() => createAppointment(session)}
-                                                disabled={session.alreadyBooked}
+                                                disabled={session.alreadyBooked || session.allBooked}
                                             >
-                                                {session.alreadyBooked ? "Already Booked" : "Book Now"}
+                                                {session.allBooked ? "No slots available" : <>{session.alreadyBooked ? "Already Booked" : "Book Now"}</>}
                                             </Button>
                                         </Card>
                                     </List.Item>
