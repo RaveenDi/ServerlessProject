@@ -137,3 +137,10 @@ p {
   margin-left: -40px;
   border-bottom-left-radius: 10px;
 }
+
+.auth-class {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; 
+}

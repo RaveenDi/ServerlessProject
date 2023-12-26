@@ -4,14 +4,25 @@ import { useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Appointments from "./pages/Appointments";
 import CreateAppointments from "./pages/CreateAppointments";
+import awsData from "./AwsData";
+import { Amplify } from "aws-amplify";
+import { Authenticator } from "@aws-amplify/ui-react";
+import "@aws-amplify/ui-react/styles.css";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
+
+  Amplify.configure({
+    Auth: {
+      Cognito: {
+        userPoolClientId: awsData.USER_POOL_APP_CLIENT_ID,
+        userPoolId: awsData.USER_POOL_ID,
+      },
+    },
+  });
   return (
     <BrowserRouter>
       {loading && (
@@ -25,7 +36,9 @@ function App() {
           path="/login"
           element={
             <PublicRoute>
-              <Login />
+              <div className="auth-class">
+                <Authenticator>{({ signOut, user }) => <Home />}</Authenticator>
+              </div>
             </PublicRoute>
           }
         />
@@ -33,7 +46,14 @@ function App() {
           path="/register"
           element={
             <PublicRoute>
-              <Register />
+              <Authenticator>
+                {({ signOut, user }) => (
+                  <div>
+                    <p>Welcome {user?.username}</p>
+                    <button onClick={signOut}>Sign out</button>
+                  </div>
+                )}
+              </Authenticator>
             </PublicRoute>
           }
         />
@@ -61,7 +81,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        </Routes>
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../layout.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut } from "aws-amplify/auth";
 
 function Layout({ children }) {
   const [collapsed] = useState(false);
@@ -17,7 +18,7 @@ function Layout({ children }) {
       name: "Appointments",
       path: "/appointments",
       icon: "ri-file-list-line",
-    }
+    },
   ];
   return (
     <div className="main">
@@ -45,7 +46,11 @@ function Layout({ children }) {
               }}
             >
               <i className="ri-logout-circle-line"></i>
-              {!collapsed && <Link to="/login">Logout</Link>}
+              {!collapsed && (
+                <Link to="/login" onClick={signOut}>
+                  Logout
+                </Link>
+              )}
             </div>
           </div>
         </div>

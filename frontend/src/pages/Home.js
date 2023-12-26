@@ -8,28 +8,28 @@ import Header from "../components/Header";
 import axios from "axios";
 
 function Home() {
-  const api_gateway_key = ''
+  const api_gateway_key = "";
   const [doctors, setDoctors] = useState([]);
   const dispatch = useDispatch();
   const getData = async () => {
     try {
-      dispatch(showLoading())
+      dispatch(showLoading());
       // make the get doctor details API call
       const response = await axios.get(
         `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/doctor`,
         {
           headers: {
-            'x-api-key': `${api_gateway_key}`,
+            "x-api-key": `${api_gateway_key}`,
           },
         }
       );
-      dispatch(hideLoading())
+      dispatch(hideLoading());
       console.log(response);
       if (response.data.success) {
         setDoctors(response.data.data);
       }
     } catch (error) {
-      dispatch(hideLoading())
+      dispatch(hideLoading());
     }
   };
 
@@ -38,7 +38,7 @@ function Home() {
   }, []);
   return (
     <Layout>
-      <Header title={'Available Doctors'} />
+      <Header title={"Available Doctors"} />
       <Row gutter={20}>
         {doctors.map((doctor) => (
           <Col span={8} xs={24} sm={24} lg={8}>
