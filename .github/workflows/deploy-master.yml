@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,14 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.10]
+
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out the repository to the runner
+      uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
+    - name: Build frontend component
+      working-directory: ./frontend
+      run: |
+        npm ci
+        npm run build
+    - name: Install serverless npm packages
+      run: npm ci
     - name: serverless deploy
       uses: serverless/github-action@v3.2
       with:
