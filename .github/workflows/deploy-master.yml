@@ -24,10 +24,10 @@ jobs:
     - name: Build frontend component
       working-directory: ./frontend
       run: |
-        npm ci
+        npm install
         npm run build
     - name: Install serverless npm packages
-      run: npm install
+      run: npm ci
     - name: serverless deploy
       uses: serverless/github-action@v3.2
       with:
