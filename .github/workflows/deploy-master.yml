@@ -27,7 +27,7 @@ jobs:
         npm ci
         npm run build
     - name: Install serverless npm packages
-      run: npm ci
+      run: npm install
     - name: serverless deploy
       uses: serverless/github-action@v3.2
       with:
