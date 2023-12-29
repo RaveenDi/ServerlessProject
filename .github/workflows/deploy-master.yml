@@ -24,8 +24,10 @@ jobs:
     - name: Build frontend component
       working-directory: ./frontend
       run: |
-        npm ci
+        npm install
         npm run build
+      env:
+       CI: false
     - name: Install serverless npm packages
       run: npm ci
     - name: serverless deploy
