@@ -7,7 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Appointments from "./pages/Appointments";
 import CreateAppointments from "./pages/CreateAppointments";
-import awsData from "./AwsData";
+import { awsData } from "./AwsData";
 import { Amplify } from "aws-amplify";
 import { Authenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
