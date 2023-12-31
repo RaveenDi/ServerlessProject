@@ -41,7 +41,7 @@ custom:
       localDir: frontend/build/
   apiGatewayUrl:
   apiGatewayKey:
-  emailSource: sample_email@domain.com  # set your email address
+  emailSource: appoinmentsvc@gmail.com  # set your email address
   template: appointmentReminderTemplate
 
 
