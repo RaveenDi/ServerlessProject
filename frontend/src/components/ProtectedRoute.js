@@ -1,4 +1,5 @@
 import React from "react";
+import AWS from "aws-sdk";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,7 +7,7 @@ import axios from "axios";
 import { setUser } from "../redux/userSlice";
 import { showLoading, hideLoading } from "../redux/alertsSlice";
 import { awsData } from "../AwsData";
-const AWS = require('aws-sdk');
+
 AWS.config.region = awsData.REGION;
 
 function ProtectedRoute(props) {
