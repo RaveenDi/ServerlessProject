@@ -39,13 +39,13 @@ custom:
   userTableName: user-details
   doctorTableName: doctor-details
   appointmentTableName: appointment-details
-  frontendBucketName: serverless-frontend-170324600
+  frontendBucketName: serverless-frontend-1702743453
   s3Sync:
     - bucketName: ${self:custom.frontendBucketName}
       localDir: frontend/build/
   apiGatewayUrl:
   apiGatewayKey:
-  emailSource: sample_email@domain.com  # set your email address
+  emailSource: appoinmentsvc@gmail.com  # set your email address
   template: appointmentReminderTemplate
   userPoolId: sampleUserPoolId # set user pool id
 
