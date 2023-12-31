@@ -1,5 +1,5 @@
 import React from "react";
-import AWS from "aws-sdk";
+import * as AWS from "aws-sdk";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
