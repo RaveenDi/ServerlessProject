@@ -5,45 +5,36 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setUser } from "../redux/userSlice";
 import { showLoading, hideLoading } from "../redux/alertsSlice";
+import { awsData } from "../AwsData";
+const AWS = require('aws-sdk');
+AWS.config.region = awsData.REGION;
 
 function ProtectedRoute(props) {
   const { user } = useSelector((state) => state.user);
+  const userPoolClientId = awsData.USER_POOL_APP_CLIENT_ID;
+  const authUser = localStorage.getItem("CognitoIdentityServiceProvider."+userPoolClientId+".LastAuthUser");
+  const accessToken = localStorage.getItem("CognitoIdentityServiceProvider."+userPoolClientId+"."+authUser+".accessToken");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+   const cognito = new AWS.CognitoIdentityServiceProvider();
   const getUser = async () => {
     try {
       dispatch(showLoading())
-      // const response = await axios.post(
-      //   "/api/user/get-user-info-by-id",
-      //   { token: localStorage.getItem("token") },
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //     },
-      //   }
-      // );
-      const response = {
-        data: {
-          success: true,
-          data: {
-            _id: '1',
-            name: 'Danya',
-            email: 'danya@gmail.com'
-          }
-        }
-      }
+      const params = {
+        AccessToken: accessToken,
+      };
+
+      const userData = await cognito.getUser(params).promise();
+      console.log('User details:', userData);
       dispatch(hideLoading());
-      if (response.data.success) {
-        dispatch(setUser(response.data.data));
-      } else {
-        localStorage.clear()
-        navigate("/login");
-      }
+      dispatch(setUser(userData));
     } catch (error) {
       dispatch(hideLoading());
+      console.log(error)
       localStorage.clear()
       navigate("/login");
     }
+
   };
 
   useEffect(() => {
@@ -52,7 +43,7 @@ function ProtectedRoute(props) {
     }
   }, [user]);
 
-  if (localStorage.getItem("token")) {
+  if (authUser) {
     return props.children;
   } else {
     return <Navigate to="/login" />;

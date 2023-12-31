@@ -1,34 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { showLoading, hideLoading } from "../redux/alertsSlice";
+import { useSelector } from "react-redux";
 import { Table, Button, Modal, message } from "antd";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import Header from "../components/Header";
 import Layout from "../components/Layout";
-import UpdateAppointmentModal from "./UpdateAppointmentModal";
 import axios from "axios";
-
+import { awsData } from "../AwsData";
 const { confirm } = Modal;
 
 function Appointments() {
+    const { user } = useSelector((state) => state.user);
+    const userId = user.UserAttributes[0].Value
     const [appointments, setAppointments] = useState([]);
-    const [visible, setVisible] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const api_gateway_key = ''
+    const api_gateway_key = awsData.API_GATEWAY_KEY;
+    const api_gateway_endpoint = awsData.API_GATEWAY_ENDPOINT;
 
     const getAppointmentsData = async () => {
         try {
             dispatch(showLoading());
             // make the get appointments API call
             const response = await axios.get(
-                `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment/${300}`,
+                "https://"+api_gateway_endpoint+"/dev/appointment/"+userId,
                 {
                     headers: {
-                        'x-api-key': `${api_gateway_key}`,
+                        'x-api-key': api_gateway_key,
                     },
                 }
             );
@@ -50,15 +52,15 @@ function Appointments() {
                     console.log("+++++", record)
                     // make the get appointments API call
                     const response = await axios.delete(
-                        `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment`,
+                        "https://"+api_gateway_endpoint+"/dev/appointment",
                         {
                             headers: {
-                                'x-api-key': `${api_gateway_key}`,
+                                'x-api-key': api_gateway_key,
                             },
                             data: {
                                 doctorId: record.doctorId,
                                 sessionDateTime: record.sessionDateTime,
-                                userId: '300',
+                                userId: userId,
                             },
                         }
                     );
@@ -132,12 +134,6 @@ function Appointments() {
             title: "Actions",
             render: (text, record) => (
                 <span>
-                    {/* <Button type="link" onClick={() => {
-                        setSelectedAppointment(record);
-                        setVisible(true);
-                    }}>
-                        Update
-                    </Button> */}
                     <Button type="link" onClick={() => handleDeleteAppointment(record)}>
                         Delete
                     </Button>
@@ -152,47 +148,6 @@ function Appointments() {
         <Layout>
             <Header title={'Appointments'} />
             <Table columns={columns} dataSource={appointments} />
-            <UpdateAppointmentModal
-                visible={visible}
-                onCancel={() => setVisible(false)}
-                onUpdate={(values) => {
-                    try {
-                        dispatch(showLoading());
-                        // make the update appointment API call
-                        const response = {
-                            data: {
-                                success: true,
-                                message: "Success"
-                            }
-                        }
-                        dispatch(hideLoading());
-                        if (response.data.success) {
-                            toast.success(response.data.message);
-                            setVisible(false);
-
-                            // Update the local state after successful update
-                            setAppointments((prevAppointments) =>
-                                prevAppointments.map((appointment) =>
-                                    appointment._id === selectedAppointment._id
-                                        ? { ...appointment, ...values }
-                                        : appointment
-                                )
-                            );
-
-                            setVisible(false);
-
-                            // Reload the page after updating
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        toast.error("Error updating appointment");
-                        dispatch(hideLoading());
-                    }
-                }}
-                appointment={selectedAppointment}
-            />
         </Layout>
     );
 }

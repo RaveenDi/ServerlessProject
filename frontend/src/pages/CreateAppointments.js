@@ -5,32 +5,36 @@ import { useDispatch, useSelector } from "react-redux";
 import { showLoading, hideLoading } from "../redux/alertsSlice";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
+import { awsData } from "../AwsData";
 import moment from "moment";
 import axios from "axios";
 
 function CreateAppointments() {
     const { user } = useSelector((state) => state.user);
+    const userId = user.UserAttributes[0].Value
     const [doctor, setDoctor] = useState(null);
     const [sessions, setSessions] = useState([]);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const params = useParams();
-    const api_gateway_key = ''
+    const api_gateway_key = awsData.API_GATEWAY_KEY;
+    const api_gateway_endpoint = awsData.API_GATEWAY_ENDPOINT;
 
-    const getDoctorSessions = async () => {
+    const getDoctorSessions = async (user) => {
         try {
+            console.log(user)
             dispatch(showLoading());
             // make the doctor data API call
             const response = await axios.post(
-                `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment/sessions`,
+                "https://"+api_gateway_endpoint+"/dev/appointment/sessions",
                 {
                   doctorId: params.doctorId,
                 //   userId: user._id
-                  userId: '300'
+                  userId: userId
                 },
                 {
                     headers: {
-                        'x-api-key': `${api_gateway_key}`,
+                        'x-api-key': api_gateway_key,
                       },
                 }
               );
@@ -50,16 +54,16 @@ function CreateAppointments() {
             console.log(session)
             // make the create appointment API call
             const response = await axios.post(
-                "https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/appointment",
+                "https://"+api_gateway_endpoint+"/dev/appointment",
                 {
                     doctorId: session.doctorId,
                     sessionDateTime: session.sessionDateTime,
                     date: session.date,
-                    userId: '300', // Assuming you have a function to get the current user ID
+                    userId: userId, // Assuming you have a function to get the current user ID
                 },
                 {
                     headers: {
-                        'x-api-key': `${api_gateway_key}`,
+                        'x-api-key': api_gateway_key,
                       },
                 }
             );
@@ -78,8 +82,8 @@ function CreateAppointments() {
     };
 
     useEffect(() => {
-        getDoctorSessions();
-    }, []);
+        getDoctorSessions(user);
+    }, [user]);
 
     return (
         <Layout>

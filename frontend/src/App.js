@@ -14,6 +14,26 @@ import "@aws-amplify/ui-react/styles.css";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
+  const formFields = {
+   signUp: {
+     username: {
+       order: 1
+     },
+     name: {
+       order: 2
+     },
+     email: {
+       order:3
+     },
+     password: {
+       order: 4
+     },
+     confirm_password: {
+       order: 5
+     }
+   },
+  };
+  const signUpAttributes=['name', 'email'];
 
   Amplify.configure({
     Auth: {
@@ -36,9 +56,7 @@ function App() {
           path="/login"
           element={
             <PublicRoute>
-              <div className="auth-class">
-                <Authenticator>{({ signOut, user }) => <Home />}</Authenticator>
-              </div>
+              <Authenticator formFields={formFields} signUpAttributes={signUpAttributes}>{({ signOut, user }) => <Home />}</Authenticator>
             </PublicRoute>
           }
         />
@@ -46,7 +64,7 @@ function App() {
           path="/register"
           element={
             <PublicRoute>
-              <Authenticator>
+              <Authenticator formFields={formFields} signUpAttributes={signUpAttributes}>
                 {({ signOut, user }) => (
                   <div>
                     <p>Welcome {user?.username}</p>

@@ -5,21 +5,24 @@ import { showLoading, hideLoading } from "../redux/alertsSlice";
 import Layout from "../components/Layout";
 import Doctor from "../components/Doctor";
 import Header from "../components/Header";
+import { awsData } from "../AwsData";
 import axios from "axios";
 
 function Home() {
-  const api_gateway_key = "";
   const [doctors, setDoctors] = useState([]);
   const dispatch = useDispatch();
+  const api_gateway_endpoint = awsData.API_GATEWAY_ENDPOINT;
+  const api_gateway_key = awsData.API_GATEWAY_KEY;
+
   const getData = async () => {
     try {
       dispatch(showLoading());
       // make the get doctor details API call
       const response = await axios.get(
-        `https://hvczuacq1f.execute-api.us-east-1.amazonaws.com/dev/doctor`,
+        "https://"+api_gateway_endpoint+"/dev/doctor",
         {
           headers: {
-            "x-api-key": `${api_gateway_key}`,
+            "x-api-key": api_gateway_key,
           },
         }
       );
