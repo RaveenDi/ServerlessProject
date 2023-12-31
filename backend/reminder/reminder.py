@@ -11,6 +11,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 email_source = os.environ['email_source']
 template = os.environ['template']
+user_pool_id = os.environ['user_pool_id']
 
 from_zone = tz.gettz('UTC')
 to_zone = tz.gettz('Asia/Colombo')
@@ -21,6 +22,7 @@ def handler(event, context):
     # Initialize DynamoDB and SES clients
     dynamodb = boto3.client('dynamodb')
     ses = boto3.client('ses')
+    cognito = boto3.client('cognito-idp')
 
     try:
 
@@ -68,16 +70,17 @@ def handler(event, context):
                     patient_id = patient_ids[appointment_number]
                     display_appointment_number = str(appointment_number + 1).zfill(2)
                     appointment_time = (dt + timedelta(minutes=10 * appointment_number)).strftime("%I:%M:%S %p")
-                    response = dynamodb.get_item(
-                        TableName="user-details",
-                        Key={
-                            'ID': patient_id
-                        }
+                    response = cognito.list_users(
+                        UserPoolId=user_pool_id,
+                        AttributesToGet=[
+                            'name', 'email'
+                        ],
+                        Limit=1,
+                        Filter=f'sub = "{patient_id["S"]}"'
                     )
-
-                    patient_data = response['Item']
-                    patient_name = patient_data['name']['S']
-                    patient_email = patient_data['email']['S']
+                    patient_data = response['Users'][0]['Attributes']
+                    patient_name = patient_data[0]['Value']
+                    patient_email = patient_data[1]['Value']
 
                     bulk_email_requests.append({
                         'Destination': {

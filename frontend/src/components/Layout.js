@@ -2,12 +2,22 @@ import React, { useState } from "react";
 import "../layout.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "aws-amplify/auth";
+import { resetUser } from "../redux/userSlice";
+import { useDispatch } from "react-redux";
+
+
 
 function Layout({ children }) {
   const [collapsed] = useState(false);
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  function signOutAll() {
+    signOut();
+    dispatch(resetUser());
+  }
+
   const userMenu = [
     {
       name: "Home",
@@ -47,7 +57,7 @@ function Layout({ children }) {
             >
               <i className="ri-logout-circle-line"></i>
               {!collapsed && (
-                <Link to="/login" onClick={signOut}>
+                <Link to="/login" onClick={signOutAll}>
                   Logout
                 </Link>
               )}

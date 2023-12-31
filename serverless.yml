@@ -15,6 +15,10 @@ provider:
       Action:
         - ses:SendBulkTemplatedEmail
       Resource: '*'
+    - Effect: Allow
+      Action:
+        - cognito-identity:ListUsers
+      Resource: '*'
   apiGateway:
     apiKeys:
       - api-key
@@ -43,6 +47,7 @@ custom:
   apiGatewayKey:
   emailSource: appoinmentsvc@gmail.com  # set your email address
   template: appointmentReminderTemplate
+  userPoolId: sampleUserPoolId # set user pool id
 
 
 plugins:
@@ -105,6 +110,7 @@ functions:
     environment:
       email_source: ${self:custom.emailSource}
       template: ${self:custom.template}
+      user_pool_id: ${self:custom.userPoolId}
     events:
       - schedule:
           method: scheduler
