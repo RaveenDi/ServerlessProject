@@ -22,7 +22,7 @@ def handler(event, context):
     # Initialize DynamoDB and SES clients
     dynamodb = boto3.client('dynamodb')
     ses = boto3.client('ses')
-    cognito = boto3.client('cognito-idp')
+    cognito = boto3.client('cognito-idp', region_name='eu-north-1')
 
     try:
 
@@ -98,7 +98,7 @@ def handler(event, context):
 
                     logging.info(
                         f"REMINDER\nHi {patient_name},\nYou have scheduled an appointment for the session {today_date}"
-                        f"@{session_time} with {doctor_name}.\nAPPOINTMENT NUMBER : {display_appointment_number}\n"
+                        f"@{session_time} with Dr.{doctor_name}.\nAPPOINTMENT NUMBER : {display_appointment_number}\n"
                         f"ESTIMATED APPOINTMENT TIME : {appointment_time}")
 
                 # Send bulk emails using Amazon SES
