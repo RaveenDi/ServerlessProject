@@ -98,7 +98,7 @@ functions:
           method: PUT
           cors: true
       - http:
-          path: appointment/{ID}
+          path: appointment/
           method: DELETE
           cors: true
       - http:
