@@ -63,7 +63,7 @@ def get_appointment_handler(user_id):
 
             time_interval_minutes = 10
             session_datetime = datetime.strptime(appointment['sessionDateTime'], '%Y-%m-%dT%H:%M:%S')
-            estimated_time = session_datetime + timedelta(minutes=count_up_to_user_id * time_interval_minutes)
+            estimated_time = session_datetime + timedelta(minutes=(count_up_to_user_id-1) * time_interval_minutes)
             appointment['estimatedTime'] = estimated_time.strftime('%Y-%m-%dT%H:%M:%S')
 
         return {
