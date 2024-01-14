@@ -71,10 +71,6 @@ functions:
           path: user/{ID}
           method: PUT
           cors: true
-      - http:
-          path: user/{ID}
-          method: DELETE
-          cors: true
   doctorService:
     handler: backend.doctor.doctor.handler
     events:
